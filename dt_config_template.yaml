@@ -1,0 +1,107 @@
+meta:
+  model_name: Granted Digital Twin
+  version: 0.1.0
+  notes: "Placeholder values \u2014 replace with real numbers from your docs."
+  scenarios:
+  - shadow_mode
+  - scrape_mode
+sim_params:
+  runs: 2000
+  seed: 42
+  time_horizon_months: 12
+physics:
+  ingestion_latency_minutes:
+    human_in_loop_validation:
+      distribution: normal
+      mean: 45
+      std: 10
+    manual_qc:
+      distribution: normal
+      mean: 20
+      std: 5
+  failure_rates:
+    hallucination_rate:
+      distribution: beta
+      alpha: 2.0
+      beta: 30.0
+    recall_precision:
+      distribution: normal
+      mean: 0.9
+      std: 0.03
+  scraping_risks:
+    honey_pot_probability:
+      distribution: beta
+      alpha: 1.2
+      beta: 50.0
+agents:
+  cfo:
+    budget_threshold_monthly_usd: 25000
+    veto_on_margin_below: 0.55
+    spend_flex_percent: 0.1
+  legal:
+    veto_triggers:
+      honey_pot_detected: true
+      terms_violation_probability_gt: 0.15
+      jurisdiction_sensitive:
+      - CA-FED
+      - CA-PROV
+  icp_buyer:
+    purchase_probability_model:
+      weights:
+        research_intensity: 0.35
+        funding_history_score: 0.25
+        data_freshness_days: -0.15
+        coverage_ratio: 0.25
+      intercept: -0.5
+      link: logistic
+      feature_bounds:
+        research_intensity:
+        - 0
+        - 1
+        funding_history_score:
+        - 0
+        - 1
+        data_freshness_days:
+        - 0
+        - 60
+        coverage_ratio:
+        - 0
+        - 1
+economy:
+  cac:
+    distribution: lognormal
+    mean: 2000
+    sigma: 0.4
+  ltv:
+    distribution: lognormal
+    mean: 18000
+    sigma: 0.5
+  pricing:
+    service_first:
+      setup_fee: 5000
+      monthly_retainer: 6000
+    product_led:
+      tiers:
+      - name: Starter
+        price_monthly: 500
+      - name: Growth
+        price_monthly: 2000
+      - name: Scale
+        price_monthly: 5000
+  churn_triggers:
+    missed_grant_opportunity_prob: 0.08
+    data_latency_over_sla_prob: 0.05
+    precision_drop_below: 0.85
+scenarios:
+  shadow_mode:
+    description: 'Scenario A: Protocol-compliant, API-first, conservative risk posture'
+    scraping_multiplier: 0.0
+    api_cost_multiplier: 1.15
+    latency_penalty_multiplier: 1.1
+    legal_risk_multiplier: 0.5
+  scrape_mode:
+    description: 'Scenario B: Aggressive scraping to maximize coverage and freshness'
+    scraping_multiplier: 1.0
+    api_cost_multiplier: 0.85
+    latency_penalty_multiplier: 0.9
+    legal_risk_multiplier: 2.0
